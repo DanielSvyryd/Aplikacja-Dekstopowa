@@ -1,3 +1,6 @@
 node_modules
 dist
 .env
+
+# Щоб зайти у Докер (це створить нову, порожню базу):
+docker-compose up -d
