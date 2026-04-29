@@ -1,4 +1,5 @@
-import { User, Mail, Hash, Users, BookOpen, Calendar } from "lucide-react";
+import { useState, useRef } from "react";
+import { User, Mail, Hash, Users, BookOpen, Calendar, Camera } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { studentProfile } from "./mock-data";
@@ -9,21 +10,59 @@ export function ProfilePage() {
   const { language } = useApp();
   const t = translations[language];
 
+  // Додаємо стан для аватарки та ref для прихованого інпуту
+  const [avatarUrl, setAvatarUrl] = useState(studentProfile.avatar);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Обробник зміни файлу
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const newAvatarUrl = URL.createObjectURL(file);
+      setAvatarUrl(newAvatarUrl);
+      
+      // Тут в майбутньому можна додати логіку для відправки файлу на бекенд
+      // або через IPC в Electron: window.ipcRenderer.send('update-avatar', file.path);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header Card */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-start gap-6">
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={studentProfile.avatar} alt={studentProfile.name} />
-              <AvatarFallback className="text-2xl">
-                {studentProfile.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
+            
+            {/* Блок з аватаркою */}
+            <div 
+              className="relative group cursor-pointer rounded-full"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Avatar className="w-24 h-24 border-2 border-transparent group-hover:border-primary transition-all">
+                <AvatarImage src={avatarUrl} alt={studentProfile.name} className="object-cover" />
+                <AvatarFallback className="text-2xl">
+                  {studentProfile.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
+              
+              {/* Оверлей з іконкою камери при наведенні */}
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera className="w-8 h-8 text-white" />
+              </div>
+              
+              {/* Прихований інпут для завантаження файлу */}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleAvatarChange}
+              />
+            </div>
+
             <div className="flex-1">
               <h2 className="text-2xl text-foreground mb-1">{studentProfile.name}</h2>
               <p className="text-muted-foreground mb-4">{studentProfile.program}</p>
