@@ -533,6 +533,203 @@ export const codeReviewStats = {
   interactionRate: 68,
 };
 
+// Peer Review Tasks - for student to review other students' code
+export interface ReviewTask {
+  id: string;
+  assignmentName: string;
+  studentName: string;
+  studentAvatar: string;
+  repositoryLink: string;
+  status: "Pending" | "In Review" | "Completed";
+  submittedAt: string;
+  code: string;
+  language: string;
+  comments: {
+    id: string;
+    line: number;
+    text: string;
+    author: string;
+    createdAt: string;
+  }[];
+}
+
+export const reviewTasks: ReviewTask[] = [
+  {
+    id: "rt1",
+    assignmentName: "React Authentication Hook",
+    studentName: "Emma Wilson",
+    studentAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
+    repositoryLink: "https://github.com/alexdev47/web-dev-project/pull/23",
+    status: "Pending",
+    submittedAt: "2026-04-28",
+    language: "typescript",
+    code: `import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+
+export function useUserData() {
+  const { user } = useAuth();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    async function fetchData() {
+      try {
+        const response = await fetch(\`/api/users/\${user.id}\`);
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [user]);
+
+  return { data, loading };
+}`,
+    comments: [
+      {
+        id: "rc1",
+        line: 15,
+        text: "Consider adding error state to return value for better error handling in components.",
+        author: "Current User",
+        createdAt: "2026-04-28",
+      },
+    ],
+  },
+  {
+    id: "rt2",
+    assignmentName: "API Route Handler",
+    studentName: "James Chen",
+    studentAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
+    repositoryLink: "https://github.com/alexdev47/web-dev-project/pull/25",
+    status: "In Review",
+    submittedAt: "2026-04-27",
+    language: "typescript",
+    code: `import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const page = searchParams.get('page') || '1';
+  const limit = searchParams.get('limit') || '10';
+
+  try {
+    const users = await db.user.findMany({
+      take: Number(limit),
+      skip: (Number(page) - 1) * Number(limit),
+    });
+
+    return NextResponse.json({ users });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch users' },
+      { status: 500 }
+    );
+  }
+}`,
+    comments: [],
+  },
+  {
+    id: "rt3",
+    assignmentName: "Database Schema",
+    studentName: "Sofia Rodriguez",
+    studentAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
+    repositoryLink: "https://github.com/alexdev47/web-dev-project/pull/28",
+    status: "Completed",
+    submittedAt: "2026-04-25",
+    language: "sql",
+    code: `CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  title VARCHAR(255) NOT NULL,
+  content TEXT,
+  published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_posts_user_id ON posts(user_id);
+CREATE INDEX idx_posts_published ON posts(published_at DESC);`,
+    comments: [
+      {
+        id: "rc2",
+        line: 12,
+        text: "Good use of foreign key constraints. Consider adding ON DELETE CASCADE for user_id.",
+        author: "Current User",
+        createdAt: "2026-04-26",
+      },
+    ],
+  },
+  {
+    id: "rt4",
+    assignmentName: "State Management Store",
+    studentName: "Michael Park",
+    studentAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc4a33fac?w=150&h=150&fit=crop",
+    repositoryLink: "https://github.com/alexdev47/web-dev-project/pull/30",
+    status: "Pending",
+    submittedAt: "2026-04-29",
+    language: "typescript",
+    code: `import { create } from 'zustand';
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+interface CartStore {
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
+  removeItem: (id: string) => void;
+  clearCart: () => void;
+  total: () => number;
+}
+
+export const useCartStore = create<CartStore>((set, get) => ({
+  items: [],
+  
+  addItem: (item) => set((state) => {
+    const existing = state.items.find(i => i.id === item.id);
+    if (existing) {
+      return {
+        items: state.items.map(i =>
+          i.id === item.id
+            ? { ...i, quantity: i.quantity + 1 }
+            : i
+        ),
+      };
+    }
+    return { items: [...state.items, item] };
+  })),
+  
+  removeItem: (id) => set((state) => ({
+    items: state.items.filter(i => i.id !== id),
+  })),
+  
+  clearCart: () => set({ items: [] }),
+  
+  total: () => get().items.reduce(
+    (sum, item) => sum + item.price * item.quantity, 0
+  ),
+}));`,
+    comments: [],
+  },
+];
+
 // Recent activity feed for dashboard
 export interface ActivityFeedItem {
   id: string;
