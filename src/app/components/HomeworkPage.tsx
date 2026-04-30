@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect} from "react";
 import { Book, CheckCircle, Clock, Upload } from "lucide-react";
 import { formatDistanceToNow, isPast } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -52,10 +52,36 @@ export function HomeworkPage() {
   const { language } = useApp();
   const t = translations[language];
 
-  const [homeworks, setHomeworks] = useState<Homework[]>(initialHomeworkData);
+  const [homeworks, setHomeworks] = useState<Homework[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedHomework, setSelectedHomework] = useState<Homework | null>(null);
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
   const [submissionLink, setSubmissionLink] = useState("");
+
+useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const data = await (window as any).electron.ipcRenderer.invoke('get-students');
+        const mappedData = data.map((s: any) => {
+      console.log("Processing student:", s); 
+      return {
+        id: s._id ? String(s._id) : Math.random().toString(),
+        subjectName: "General Progress",
+        title: s.name ? `Student: ${s.name}` : "Unknown Student",
+        deadline: new Date(),
+        submissionDate: s.githubStats?.lastCommit ? new Date() : null,
+        status: (s.progress && s.progress > 50) ? "Submitted" : "Pending",
+      };
+    });
+        setHomeworks(mappedData);
+      } catch (err) {
+        console.error("Atlas error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudents();
+  }, []);
 
   const handleSubmitWork = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,6 +133,7 @@ export function HomeworkPage() {
     }
   };
 
+  if (loading) {
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -166,7 +193,7 @@ export function HomeworkPage() {
               
               <div className="pt-4 border-t border-border mt-auto">
                 {hw.status !== "Submitted" ? (
-                  <Dialog open={isSubmitOpen && selectedHomework?.id === hw.id} onOpenChange={(open) => {
+                  <Dialog open={isSubmitOpen && selectedHomework?.id === hw.id} onOpenChange={(open: any) => {
                     setIsSubmitOpen(open);
                     if (open) setSelectedHomework(hw);
                     else setSelectedHomework(null);
@@ -191,7 +218,7 @@ export function HomeworkPage() {
                             id="link"
                             placeholder="https://github.com/username/repo"
                             value={submissionLink}
-                            onChange={(e) => setSubmissionLink(e.target.value)}
+                            onChange={(e: any) => setSubmissionLink(e.target.value)}
                             required
                           />
                         </div>
@@ -213,4 +240,5 @@ export function HomeworkPage() {
       </div>
     </div>
   );
+}
 }
