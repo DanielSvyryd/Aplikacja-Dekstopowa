@@ -2,6 +2,7 @@
   # tRocker - student personal development progress tracker
 
   This is a code bundle for Student Progress Tracker Prototype. The original protorype is available at https://www.figma.com/make/QOs40LQ3Oji3wOI06JJYE5/Student-Progress-Tracker-Prototype.
+  link: http://localhost:5173/
 
   ## Basic setup
 
