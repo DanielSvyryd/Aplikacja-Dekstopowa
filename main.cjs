@@ -17,8 +17,9 @@ function createMainWindow() {
         width: 1200,
         height: 800,
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false 
+            preload: path.join(__dirname, 'preload.cjs'),
+            nodeIntegration: false,
+            contextIsolation: true 
         },
     });
     mainWin.loadURL('http://localhost:5173'); 

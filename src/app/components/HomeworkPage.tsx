@@ -62,14 +62,17 @@ useEffect(() => {
     const fetchStudents = async () => {
       try {
         const data = await (window as any).electron.ipcRenderer.invoke('get-students');
-        const mappedData = data.map((s: any) => ({
-          id: s._id,
-          subjectName: "General Progress",
-          title: `Student: ${s.name}`,
-          deadline: new Date(), 
-          submissionDate: s.githubStats?.lastCommit ? new Date() : null,
-          status: s.progress > 50 ? "Submitted" : "Pending",
-        }));
+        const mappedData = data.map((s: any) => {
+      console.log("Processing student:", s); 
+      return {
+        id: s._id ? String(s._id) : Math.random().toString(),
+        subjectName: "General Progress",
+        title: s.name ? `Student: ${s.name}` : "Unknown Student",
+        deadline: new Date(),
+        submissionDate: s.githubStats?.lastCommit ? new Date() : null,
+        status: (s.progress && s.progress > 50) ? "Submitted" : "Pending",
+      };
+    });
         setHomeworks(mappedData);
       } catch (err) {
         console.error("Atlas error:", err);
